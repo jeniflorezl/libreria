@@ -1,4 +1,4 @@
-import com
+import com.datastax.driver.core._
 
 object Helper {
 
