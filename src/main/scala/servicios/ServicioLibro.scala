@@ -1,32 +1,47 @@
 package servicios
 
 import entidades.{Libro, Persona}
+import utilidades.{CassandraConnectionUri, Helper}
+
+import scala.util.Try
 
 object ServicioLibro{
-  def prestar(libro: Libro, prestador: Persona): Option[Libro] = {
-    if (libro.estado == "D") Some(Libro(libro.titulo, libro.isbn, "P", Some(prestador.correo)))
-    else None
+  private val uri = CassandraConnectionUri("cassandra://localhost:9042/libreria")
+  private val session = Helper.createSessionAndInitKeyspace(uri)
+  def crearLibro(titulo: String, isbn: String, estado: String): Try[Boolean] = {
+    ImplementacionDAO.crearLibro(session, Libro(titulo, isbn, estado))
+  }
+  def prestar(isbn: String, prestador_correo: String): Try[Boolean] = {
+
+    if (libro.estado == "D"){
+      ImplementacionDAO.prestarLibro(session, libro, prestador)
+    }else{
+      Try{false}
+    }
   }
 
   def devolver(libro: Libro) = {
-    if (libro.estado == "P") Some(Libro(libro.titulo, libro.isbn, "D", None))
+    if (libro.estado == "P"){
+      ImplementacionDAO.devolverLibro(session, libro)
+    }else{
+      Try{false}
+    }
   }
 
-  def listarLibros(libros: List[Libro]) =
-    libros.foreach(x => println(x))
-
-  def listarDisponibles(libros: List[Libro]) ={
-    val librosD = libros.filter(libro => libro.estado == "D")
-    librosD
+  def listarLibros():Option[List[Libro]] = {
+    ImplementacionDAO.ListarLibros(session)
   }
 
-  def listarPrestados(libros: List[Libro]) ={
-    val librosD = libros.filter(libro => libro.estado == "P")
-    librosD
+  def listarDisponibles():Option[List[Libro]] = {
+    ImplementacionDAO.ListarDisponibles(session)
   }
 
-  def librosPersona(persona: Persona, libros: List[Libro]) = {
-    val result = libros.filter(libro => libro.persona == persona.correo)
+  def listarPrestados():Option[List[Libro]] = {
+    ImplementacionDAO.ListarPrestados(session)
+  }
+
+  def librosPersona(persona: Persona): Option[List[Libro]] = {
+    ImplementacionDAO.LibrosPersona(session, persona)
   }
 
 }
